@@ -14,7 +14,7 @@ class AvlTree
         int node_height; 
         int left_nodes_number;
         int right_nodes_number;
-        int size; 
+        int size;
         // internal function to free and delete all the tree nodes 
         void cleanTree(AvlTree<T>* node)
         {

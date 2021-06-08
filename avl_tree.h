@@ -299,7 +299,7 @@ class AvlTree
         {
             if(this->left!=NULL)
                 this->left->printTr();
-            std::cout << this->data << std::endl; 
+            std::cout << this->data <<" " <<"Right: "<<this->right_nodes_number <<"Left:" <<this->left_nodes_number  << std::endl; 
             if(this->right!=NULL)
                 this->right->printTr();     
         }
@@ -342,10 +342,9 @@ class AvlTree
 
     public:
 
-        AvlTree<T>(): data(), right(), left(), next(), parent(), min_node(), node_height(0), size(0), left_nodes_number(0), right_nodes_number(0) {}
+        AvlTree<T>(): data(), right(), left(), next(), parent(), min_node(), node_height(0) {}
 
-        AvlTree<T>(T* array, int size_of_tree)
-        : data(), right(), left(), next(), parent(), min_node(), node_height(0), size(size_of_tree), left_nodes_number(0), right_nodes_number(0) // building AVL tree from a sorted array, O(n) compleccity. 
+        AvlTree<T>(T* array, int size_of_tree): data(), right(), left(), next(), parent(), min_node(), node_height(0), size(size_of_tree)// building AVL tree from a sorted array, O(n) compleccity. 
         {
             this->next = buildTree(array, 0, size_of_tree );
             this->min_node = findMinNode(); 
@@ -461,7 +460,7 @@ class AvlTree
 
             //merge between 2 arrays into one sorted array. 
 
-            T* new_array = new T[this->size + tree2->size]   
+            T* new_array = new T[this->size + tree2->size] ;  
             int i = 0; 
             int j = 0; 
             int k = 0;
@@ -482,9 +481,11 @@ class AvlTree
                 else
                 {
                     if(array1[i]<array2[j])
+                    {
                        new_array[k] = array1[i];
                         i++; 
                         k++;
+                    }
                     else
                     {
                         new_array[k] = array2[j];
@@ -493,7 +494,7 @@ class AvlTree
                     }    
                 }
             }
-            AvlTree<Model>* new_tree = new AvlTree<Model>(new_array, this->size + tree2->size-1);
+            AvlTree<T>* new_tree = new AvlTree<T>(new_array, this->size + tree2->size-1);
             delete[] array1;
             delete[] array2;
             delete[] new_array; 

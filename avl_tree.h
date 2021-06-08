@@ -14,7 +14,8 @@ class AvlTree
         int node_height; 
         int left_nodes_number;
         int right_nodes_number;
-        int size; 
+        int size;
+        int index_counter;  
         // internal function to free and delete all the tree nodes 
         void cleanTree(AvlTree<T>* node)
         {
@@ -339,6 +340,19 @@ class AvlTree
             else  
                 return findNode(data, tree_node->left);            
         }
+        AvlTree<T>* getNumberNode(AvlTree<T>* tree_node, int i, int sum)
+        {
+            if(tree_node == NULL)
+                return NULL;
+            if(i < 1 + tree_node->left_nodes_number + sum)
+                tree_node = getNumberNode(tree_node->left, i, sum); 
+            else if(i > 1 + tree_node->left_nodes_number + sum) 
+            {
+                int new_sum = sum + tree_node->left_nodes_number +1;
+                tree_node = getNumberNode(tree_node->right, i, new_sum); 
+            }
+            return tree_node;  
+        }
 
     public:
 
@@ -440,41 +454,43 @@ class AvlTree
         {
             return this->next->node_height; 
         }  
-        int moveToArray(T* array, AvlTree<T>* tree, int i)
+        void moveToArray(T* array, AvlTree<T>* tree)
         {
-            int index = i;
             if(tree == NULL)
-               return 0;  
-            index = index + moveToArray(array, tree->getLeft(), index) ;
-            array[index] = this->data; 
-            index++;
-            index = index + moveToArray(array, tree->getRigh(), index) ;
-            return index; 
+               return ;  
+            moveToArray(array, tree->left);
+            array[index_counter] = tree->data; 
+            index_counter++;
+            moveToArray(array, tree->right);
         }
         AvlTree<T>* merge(AvlTree<T>* tree2)
         {
             T* array1 = new T[this->size];
             T* array2 = new T[tree2->size];
-            this->moveToArray(array1, this->next, 0);
-            tree2->moveToArray(array2, tree2->next,0);
+            index_counter = 0; 
+            this->moveToArray(array1, this->next);
+            index_counter = 0; 
+            tree2->moveToArray(array2, tree2->next);
 
             //merge between 2 arrays into one sorted array. 
 
-            T* new_array = new T[this->size + tree2->size] ;  
+            T* new_array = new T[this->size + tree2->size];  
             int i = 0; 
             int j = 0; 
             int k = 0;
             while(k<this->size + tree2->size)
             {
-                if(j<tree2->size)
+                if(j>=tree2->size)
                 {
                     new_array[k] = array1[i];
+                    //std::cout << new_array[k] << std::endl; 
                     i++;
                     k++;
                 }
-                else if(i<this->size)
+                else if(i>=this->size)
                 {
                     new_array[k] = array2[j];
+                    //std::cout << new_array[k] << std::endl; 
                     j++;
                     k++;
                 }
@@ -483,12 +499,16 @@ class AvlTree
                     if(array1[i]<array2[j])
                     {
                        new_array[k] = array1[i];
+                     //  std::cout <<  array1[i] << std::endl; 
+                      // std::cout << new_array[k] << std::endl; 
                         i++; 
                         k++;
                     }
                     else
                     {
                         new_array[k] = array2[j];
+                      //   std::cout <<array2[j] << std::endl; 
+                      //  std::cout << new_array[k] << std::endl; 
                         j++;
                         k++;
                     }    
@@ -572,6 +592,10 @@ class AvlTree
         int getRightNodesNumber()
         {
             return this->right_nodes_number; 
+        }
+        AvlTree<T>* getNumber(int i)
+        {
+            return getNumberNode(this->next, i, 0);
         }
     };            
 #endif

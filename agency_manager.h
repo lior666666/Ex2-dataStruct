@@ -27,7 +27,14 @@ public:
     ~AgencyManager()
     {
         if (agencies_array != NULL)
+        {
+            for (int i = 0; i < agencies_counter; i++)
+            {
+                if(agencies_array[i] != NULL)
+                    delete agencies_array[i]; 
+            }
             delete[] agencies_array;
+        }
         if (head_agencies_array != NULL)
             delete[] head_agencies_array;
     }
@@ -105,7 +112,37 @@ public:
         AvlTree<VehicleBySales>* old_sales_tree1 = temp1->getSalesTree(); 
         AvlTree<VehicleByType>* old_types_tree1 = temp1->getTypeTree(); 
         AvlTree<VehicleBySales>* old_sales_tree2 = temp2->getSalesTree(); 
-        AvlTree<VehicleByType>* old_types_tree2 = temp2->getTypeTree(); 
+        AvlTree<VehicleByType>* old_types_tree2 = temp2->getTypeTree();
+        if(old_sales_tree1->isEmpty() && old_sales_tree2->isEmpty())
+        {
+            return SUCCESS;
+        } 
+        if(temp1->getNumOfAgencies() <= temp2->getNumOfAgencies())
+        {
+            if(old_sales_tree2->isEmpty())
+                {
+                    delete old_sales_tree2; 
+                    delete old_types_tree2;  
+                    temp2->setSalesTree(old_sales_tree1);
+                    temp2->setTypeTree(old_types_tree1);
+                     return SUCCESS; 
+                }
+            else if(old_sales_tree1->isEmpty())    
+                 return SUCCESS;
+        }
+        else
+        {
+            if(old_sales_tree1->isEmpty())
+                {
+                    delete old_sales_tree1; 
+                    delete old_types_tree1;  
+                    temp2->setSalesTree(old_sales_tree2);
+                    temp2->setTypeTree(old_types_tree2);
+                    return SUCCESS;
+                }
+            else if(old_sales_tree2->isEmpty()) 
+                return SUCCESS;    
+        }
         AvlTree<VehicleBySales>* merged_sales_tree =  old_sales_tree1->merge(old_sales_tree2); // O(m1+m2)
         AvlTree<VehicleByType>* merged_types_tree =  old_types_tree1->merge(old_types_tree2); // O(m1+m2)
         delete old_sales_tree1; 
@@ -134,7 +171,7 @@ public:
             temp1->setSalesTree(merged_sales_tree);
             temp1->setTypeTree(merged_types_tree);
         }
-        head_agencies_counter--;
+        //head_agencies_counter--;
         return SUCCESS;
     }
 
@@ -161,8 +198,8 @@ public:
         if(agencyID >= agencies_counter)
             return FAILURE;
         Agency* group_head = find(agencyID); //log*(n)
-        group_head->getSalesTree()->printTree();
-        AvlTree<VehicleBySales>* model_node = group_head->getSalesTree()->getNumber(i-1); // log(m)
+        //group_head->getSalesTree()->printTree();
+        AvlTree<VehicleBySales>* model_node = group_head->getSalesTree()->getNumber(i+1); // log(m)
         if(model_node == NULL)
             return FAILURE; 
         *res = model_node->getData().getTypeID();

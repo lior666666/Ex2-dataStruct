@@ -30,6 +30,8 @@ public:
     {
         return this->num_of_sales;
     }
+    friend std::ostream& operator<<(std::ostream& os, const VehicleBySales&  c);
+
 };
 
 bool operator==(const VehicleBySales& v1, const VehicleBySales& v2)
@@ -49,4 +51,8 @@ bool operator>(const VehicleBySales& v1, const VehicleBySales& v2)
     return !(v1 < v2) && !(v1 == v2);
 }
 
+std::ostream& operator<<(std::ostream& os, const VehicleBySales& c)
+{
+	return os << "model: typeID: " << c.typeID << ", num_of_sales: " << c.num_of_sales << "***";
+}
 #endif

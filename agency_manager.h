@@ -2,6 +2,7 @@
 #define AGENCY_MANAGER_H_
 #include <iostream>
 #include "avl_tree.h"
+#include "library2.h"
 #include "vehicle_by_type.h"
 #include "vehicle_by_sales.h"
 #include "agency.h"
@@ -9,18 +10,18 @@
 class AgencyManager
 {
     int agencies_counter; //start from 0
+    int head_agencies_counter; //start from 0
     Agency** agencies_array;
+    int agencies_array_length;
     Agency** head_agencies_array;
-    int agencies_array_length; 
-    int head_agencies_array_length; 
-    int head_agencies_counter; 
-
+    int head_agencies_array_length;
 public:
 
-    AgencyManager(): agencies_counter(0), agencies_array(NULL),head_agencies_array(NULL) ,agencies_array_length(0), head_agencies_array_length(0), head_agencies_counter(0)
+    AgencyManager(): agencies_counter(0), head_agencies_counter(0), agencies_array(NULL),
+                    agencies_array_length(1), head_agencies_array(NULL), head_agencies_array_length(1)
     {
         agencies_array = new Agency*[1];
-        head_agencies_array = new Agency*[1]; 
+        head_agencies_array = new Agency*[1];
     }
 
     ~AgencyManager()
@@ -30,27 +31,91 @@ public:
         if (head_agencies_array != NULL)
             delete[] head_agencies_array;
     }
+
+    StatusType AddAgency()
+    {
+        AvlTree<VehicleByType>* agency_type_tree = new AvlTree<VehicleByType>();
+        AvlTree<VehicleBySales>* agency_sales_tree = new AvlTree<VehicleBySales>();
+        Agency* new_agency = new Agency(agencies_counter, agency_type_tree, agency_sales_tree);
+        agencies_array[agencies_counter] = new_agency;
+        head_agencies_array[head_agencies_counter] = new_agency;
+        agencies_counter++;
+        head_agencies_counter++;
+        if (agencies_counter == agencies_array_length) // multiply the dynamic agencies array
+        {
+            Agency** new_agencies_array = new Agency*[2*agencies_array_length];
+            for (int i = 0; i < agencies_array_length; i++)
+            {
+                new_agencies_array[i] = agencies_array[i];
+            }
+            delete[] agencies_array;
+            agencies_array = new_agencies_array;
+            agencies_array_length = 2*agencies_array_length;
+        }
+        if (head_agencies_counter == head_agencies_array_length) // multiply the dynamic head agencies array
+        {
+            Agency** new_head_agencies_array = new Agency*[2*head_agencies_array_length];
+            for (int i = 0; i < head_agencies_array_length; i++)
+            {
+                new_head_agencies_array[i] = head_agencies_array[i];
+            }
+            delete[] head_agencies_array;
+            head_agencies_array = new_head_agencies_array;
+            head_agencies_array_length = 2*head_agencies_array_length;
+        }
+        return SUCCESS;
+    }
+
+    StatusType SellCar(int agencyID, int typeID, int k)
+    {
+        if (agencyID >= agencies_counter)
+            return FAILURE;
+        Agency* agency = find(agencyID); // log*n
+        if (agency == NULL)
+            return FAILURE;
+        AvlTree<VehicleByType>* agency_type_tree = agency->getTypeTree();
+        AvlTree<VehicleBySales>* agency_sales_tree = agency->getSalesTree();
+        VehicleByType demmy_vehicle = VehicleByType(typeID);
+        VehicleBySales demmy_sales_vehicle = VehicleBySales(typeID);
+        VehicleByType* typeID_vehicle = agency_type_tree->getNodeData(demmy_vehicle); // log m
+        if (typeID_vehicle != NULL) //there is such a typeID in the tree --> update the sales
+        {
+            demmy_sales_vehicle.addSales(typeID_vehicle->getNumOfSales());
+            agency_sales_tree->removeElement(demmy_sales_vehicle);
+            typeID_vehicle->addSales(k);
+            demmy_sales_vehicle.addSales(k);
+            agency_sales_tree->insertElement(demmy_sales_vehicle); 
+        }
+        else //no typeID in the tree --> need to create new typeID
+        {
+            demmy_vehicle.addSales(k);
+            demmy_sales_vehicle.addSales(k);
+            agency_sales_tree->insertElement(demmy_sales_vehicle);
+            agency_type_tree->insertElement(demmy_vehicle); // log m
+        }
+        return SUCCESS;
+    }
+
     StatusType UniteAgencies(int agencyID1, int agencyID2)
     {
-        // !!!!check input in the library !!!
-        if(agencyID1>agencies_counter || agencyID2>agencies_counter)
+        if(agencyID1 >= agencies_counter || agencyID2 >= agencies_counter)
             return FAILURE;
-        Agency* temp1 =  head_agencies_array[agencyID1];
-        Agency* temp2 =  head_agencies_array[agencyID2];
+        Agency* temp1 = head_agencies_array[agencyID1];
+        Agency* temp2 = head_agencies_array[agencyID2];
         AvlTree<VehicleBySales>* old_sales_tree1 = temp1->getSalesTree(); 
         AvlTree<VehicleByType>* old_types_tree1 = temp1->getTypeTree(); 
         AvlTree<VehicleBySales>* old_sales_tree2 = temp2->getSalesTree(); 
         AvlTree<VehicleByType>* old_types_tree2 = temp2->getTypeTree(); 
-        AvlTree<VehicleBySales>* merged_sales_tree =  old_sales_tree1->merge(old_sales_tree2); // O(n+m)
-        AvlTree<VehicleByType>* merged_types_tree =  old_types_tree1->merge(old_types_tree2); // O(n+m)
+        AvlTree<VehicleBySales>* merged_sales_tree =  old_sales_tree1->merge(old_sales_tree2); // O(m1+m2)
+        AvlTree<VehicleByType>* merged_types_tree =  old_types_tree1->merge(old_types_tree2); // O(m1+m2)
         delete old_sales_tree1; 
         delete old_types_tree1; 
         delete old_sales_tree2; 
         delete old_types_tree2; 
-        if(temp1->getNumOfAgencies()<= temp2->getNumOfAgencies())
+        if(temp1->getNumOfAgencies() <= temp2->getNumOfAgencies()) // temp2 bigger so unite the trees to it
         {
             temp1->setNext(temp2);
-            head_agencies_array[agencyID1] = head_agencies_array[agencyID2];
+            head_agencies_array[agencyID1] = head_agencies_array[agencyID2]; // update the new head of the group
             temp2->setNumOfAgencies(temp1->getNumOfAgencies() + temp2->getNumOfAgencies());
             temp1->setNumOfAgencies(0);
             temp1->setSalesTree(NULL);
@@ -61,7 +126,7 @@ public:
         else
         {
             temp2->setNext(temp1);
-            head_agencies_array[agencyID2] = head_agencies_array[agencyID1];
+            head_agencies_array[agencyID2] = head_agencies_array[agencyID1]; // update the new head of the group
             temp1->setNumOfAgencies(temp1->getNumOfAgencies() + temp2->getNumOfAgencies());
             temp2->setNumOfAgencies(0);
             temp2->setSalesTree(NULL);
@@ -70,9 +135,8 @@ public:
             temp1->setTypeTree(merged_types_tree);
         }
         head_agencies_counter--;
-        return SUCCESS;        
+        return SUCCESS;
     }
-
 
     Agency* find(int agencyID)
     {
@@ -85,7 +149,7 @@ public:
         Agency* next_temp = temp2->getNext(); 
         while(next_temp != NULL) // update all routes to the head. 
         {
-            temp2->getNext() = temp; 
+            temp2->setNext(temp); 
             temp2 = next_temp; 
             next_temp = next_temp->getNext();
         }   
@@ -94,27 +158,16 @@ public:
 
     StatusType GetIthSoldType(int agencyID, int i, int* res)
     {
-        // !!!!check for input in the library !!! 
-        if(agencyID>agencies_counter)
+        if(agencyID >= agencies_counter)
             return FAILURE;
         Agency* group_head = find(agencyID); //log*(n)
-        AvlTree<VehicleBySales>* model_node = group_head->getSalesTree()->getNumber(i); // log(m)
+        group_head->getSalesTree()->printTree();
+        AvlTree<VehicleBySales>* model_node = group_head->getSalesTree()->getNumber(i-1); // log(m)
         if(model_node == NULL)
             return FAILURE; 
-        res* = model_node->getData().getTypeID();
+        *res = model_node->getData().getTypeID();
         return SUCCESS;
     }
-    void updateAgencyCounter()
-    {
-        this->agencies_counter = this->agencies_counter + 1;
-    }
-
-    int getAgencyCounter()
-    {
-        return this->agencies_counter;
-    }
-
 };
 
 #endif
-© 2021 GitHub, Inc.

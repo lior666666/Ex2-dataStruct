@@ -14,14 +14,16 @@ class Agency
     AvlTree<VehicleBySales>* sales_tree;
 public:
 
-    Agency(): agecny_typeID(0), num_of_agencies(0), next(NULL), type_tree(), sales_tree() {}
+    Agency(): agecny_typeID(0), num_of_agencies(0), next(NULL), type_tree(NULL), sales_tree(NULL) {}
     ~Agency()
     {
-        delete type_tree;
-        delete sales_tree; 
+        if (type_tree != NULL)
+            delete type_tree;
+        if (sales_tree != NULL)
+            delete sales_tree;
     }
     Agency(const Agency& agecny) = default;
-    Agency(int agecny_typeID) : agecny_typeID(agecny_typeID), num_of_agencies(1), next(NULL), type_tree(), sales_tree() {}
+    Agency(int agecny_typeID, AvlTree<VehicleByType>* type_tr, AvlTree<VehicleBySales>* sales_tr) : agecny_typeID(agecny_typeID), num_of_agencies(1), next(NULL), type_tree(type_tr), sales_tree(sales_tr) {}
     
     void setNext(Agency* next)
     {
@@ -57,6 +59,7 @@ public:
     {
         return this->sales_tree;
     }
+
     void setTypeTree(AvlTree<VehicleByType>* type_tr)
     {
         this->type_tree = type_tr;

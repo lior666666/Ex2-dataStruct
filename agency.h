@@ -24,7 +24,9 @@ public:
     }
     Agency(const Agency& agecny) = default;
     Agency(int agecny_typeID) : agecny_typeID(agecny_typeID), num_of_agencies(1), next(NULL), type_tree(NULL), sales_tree(NULL) {}
-    
+    Agency(int agecny_typeID, AvlTree<VehicleByType>* type_tree, AvlTree<VehicleBySales>* sales_tree) : 
+            agecny_typeID(agecny_typeID), num_of_agencies(1), next(NULL), type_tree(type_tree), sales_tree(sales_tree) {}
+
     void setNext(Agency* next)
     {
         this->next = next;

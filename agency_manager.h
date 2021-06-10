@@ -34,7 +34,7 @@ public:
 
     StatusType AddAgency()
     {
-        Agency* new_agency = new Agency(agencies_counter);
+        Agency* new_agency = new Agency(agencies_counter, new AvlTree<VehicleByType>(), new AvlTree<VehicleBySales>());
         agencies_array[agencies_counter] = new_agency;
         head_agencies_array[head_agencies_counter] = new_agency;
         agencies_counter++;
@@ -72,16 +72,26 @@ public:
         if (agency == NULL)
             return FAILURE;
         AvlTree<VehicleByType>* agency_type_tree = agency->getTypeTree();
+        AvlTree<VehicleBySales>* agency_sales_tree = agency->getSalesTree();
         VehicleByType demmy_vehicle = VehicleByType(typeID);
         VehicleByType* typeID_vehicle = agency_type_tree->getNodeData(demmy_vehicle); // log m
         if (typeID_vehicle != NULL) //there is such a typeID in the tree --> update the sales
         {
-            typeID_vehicle->addSales(k);
+            VehicleByType new_type_vehicle = *typeID_vehicle;
+            VehicleBySales new_sales_vehicle = VehicleBySales((*typeID_vehicle).getTypeID(), (*typeID_vehicle).getNumOfSales());
+            agency_type_tree->removeElement(*typeID_vehicle);
+            agency_sales_tree->removeElement(new_sales_vehicle);
+            new_type_vehicle.addSales(k);
+            new_sales_vehicle.addSales(k);
+            agency_type_tree->insertElement(new_type_vehicle);
+            agency_sales_tree->insertElement(new_sales_vehicle);
         }
         else //no typeID in the tree --> need to create new typeID
         {
-            VehicleByType new_vehicle = VehicleByType(typeID, k);
-            agency_type_tree->insertElement(new_vehicle); // log m
+            VehicleByType new_vehicle_by_type = VehicleByType(typeID, k);
+            agency_type_tree->insertElement(new_vehicle_by_type); // log m
+            VehicleBySales new_vehicle_by_sales = VehicleBySales(typeID);
+            agency_sales_tree->insertElement(new_vehicle_by_sales); // log m
         }
         return SUCCESS;
     }

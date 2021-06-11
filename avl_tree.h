@@ -465,30 +465,33 @@ class AvlTree
         }
         AvlTree<T>* merge(AvlTree<T>* tree2)
         {
+            if(this->isEmpty() && tree2->isEmpty())
+            {
+                return new AvlTree<T>(); 
+            }
+            if(this->isEmpty()) 
+            {
+                T* array2 = new T[tree2->size];
+                tree2->moveToArray(array2, tree2->next);
+                AvlTree<T>* new_tree = new AvlTree<T>(array2, tree2->size-1);
+                delete[] array2; 
+                return new_tree; 
+            }
+            if(tree2->isEmpty()) 
+            {
+                T* array1 = new T[this->size];
+                this->moveToArray(array1, this->next);
+                AvlTree<T>* new_tree =  new AvlTree<T>(array1, this->size-1); 
+                delete[] array1; 
+                return new_tree;
+            }     
             T* array1 = new T[this->size];
             T* array2 = new T[tree2->size];
             index_counter = 0; 
             this->moveToArray(array1, this->next);
             index_counter = 0; 
             tree2->moveToArray(array2, tree2->next);
-            if(this->isEmpty() && tree2->isEmpty())
-            {
-                delete[] array1; 
-                delete[] array2; 
-                return new AvlTree<T>(); 
-            }
-            if(this->isEmpty()) 
-            {
-                delete[] array1; 
-                delete[] array2; 
-                return new AvlTree<T>(array2, tree2->size-1);
-            }
-            if(tree2->isEmpty()) 
-            {
-                delete[] array1; 
-                delete[] array2; 
-                return new AvlTree<T>(array1, this->size-1); 
-            }         
+        
             //merge between 2 arrays into one sorted array. 
 
             T* new_array = new T[this->size + tree2->size];  

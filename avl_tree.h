@@ -356,9 +356,9 @@ class AvlTree
 
     public:
 
-        AvlTree<T>(): data(), right(), left(), next(), parent(), min_node(), node_height(0) {}
+        AvlTree<T>(): data(), right(), left(), next(), parent(), min_node(), node_height(0), left_nodes_number(0), right_nodes_number(0), size(0), index_counter(0) {}
 
-        AvlTree<T>(T* array, int size_of_tree): data(), right(), left(), next(), parent(), min_node(), node_height(0), size(size_of_tree)// building AVL tree from a sorted array, O(n) compleccity. 
+        AvlTree<T>(T* array, int size_of_tree): data(), right(), left(), next(), parent(), min_node(), node_height(0),left_nodes_number(0), right_nodes_number(0), size(size_of_tree+1), index_counter(0) // building AVL tree from a sorted array, O(n) compleccity. 
         {
             this->next = buildTree(array, 0, size_of_tree );
             this->min_node = findMinNode(); 
@@ -471,7 +471,24 @@ class AvlTree
             this->moveToArray(array1, this->next);
             index_counter = 0; 
             tree2->moveToArray(array2, tree2->next);
-
+            if(this->isEmpty() && tree2->isEmpty())
+            {
+                delete[] array1; 
+                delete[] array2; 
+                return new AvlTree<T>(); 
+            }
+            if(this->isEmpty()) 
+            {
+                delete[] array1; 
+                delete[] array2; 
+                return new AvlTree<T>(array2, tree2->size-1);
+            }
+            if(tree2->isEmpty()) 
+            {
+                delete[] array1; 
+                delete[] array2; 
+                return new AvlTree<T>(array1, this->size-1); 
+            }         
             //merge between 2 arrays into one sorted array. 
 
             T* new_array = new T[this->size + tree2->size];  
@@ -596,6 +613,10 @@ class AvlTree
         AvlTree<T>* getNumber(int i)
         {
             return getNumberNode(this->next, i, 0);
+        }
+        int getSize()
+        {
+            return size; 
         }
     };            
 #endif

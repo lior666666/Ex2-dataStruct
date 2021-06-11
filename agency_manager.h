@@ -113,36 +113,36 @@ public:
         AvlTree<VehicleByType>* old_types_tree1 = temp1->getTypeTree(); 
         AvlTree<VehicleBySales>* old_sales_tree2 = temp2->getSalesTree(); 
         AvlTree<VehicleByType>* old_types_tree2 = temp2->getTypeTree();
-        if(old_sales_tree1->isEmpty() && old_sales_tree2->isEmpty())
-        {
-            return SUCCESS;
-        } 
-        if(temp1->getNumOfAgencies() <= temp2->getNumOfAgencies())
-        {
-            if(old_sales_tree2->isEmpty())
-                {
-                    delete old_sales_tree2; 
-                    delete old_types_tree2;  
-                    temp2->setSalesTree(old_sales_tree1);
-                    temp2->setTypeTree(old_types_tree1);
-                     return SUCCESS; 
-                }
-            else if(old_sales_tree1->isEmpty())    
-                 return SUCCESS;
-        }
-        else
-        {
-            if(old_sales_tree1->isEmpty())
-                {
-                    delete old_sales_tree1; 
-                    delete old_types_tree1;  
-                    temp2->setSalesTree(old_sales_tree2);
-                    temp2->setTypeTree(old_types_tree2);
-                    return SUCCESS;
-                }
-            else if(old_sales_tree2->isEmpty()) 
-                return SUCCESS;    
-        }
+        // if(old_sales_tree1->isEmpty() && old_sales_tree2->isEmpty())
+        // {
+        //     return SUCCESS;
+        // } 
+        // if(temp1->getNumOfAgencies() <= temp2->getNumOfAgencies())
+        // {
+        //     if(old_sales_tree2->isEmpty())
+        //         {
+        //             delete old_sales_tree2; 
+        //             delete old_types_tree2;   
+        //             temp2->setSalesTree(old_sales_tree1);
+        //             temp2->setTypeTree(old_types_tree1);
+        //              return SUCCESS; 
+        //         }
+        //     else if(old_sales_tree1->isEmpty())    
+        //          return SUCCESS;
+        // }
+        // else
+        // {
+        //     if(old_sales_tree1->isEmpty())
+        //         {
+        //             delete old_sales_tree1; 
+        //             delete old_types_tree1;  
+        //             temp2->setSalesTree(old_sales_tree2);
+        //             temp2->setTypeTree(old_types_tree2);
+        //             return SUCCESS;
+        //         }
+        //     else if(old_sales_tree2->isEmpty()) 
+        //         return SUCCESS;    
+        // }
         AvlTree<VehicleBySales>* merged_sales_tree =  old_sales_tree1->merge(old_sales_tree2); // O(m1+m2)
         AvlTree<VehicleByType>* merged_types_tree =  old_types_tree1->merge(old_types_tree2); // O(m1+m2)
         delete old_sales_tree1; 

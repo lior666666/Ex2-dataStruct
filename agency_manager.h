@@ -27,9 +27,18 @@ public:
     ~AgencyManager()
     {
         if (agencies_array != NULL)
+        {
+            for (int i = 0; i < agencies_counter; i++)
+            {
+                if (agencies_array[i] != NULL)
+                    delete agencies_array[i];
+            }
             delete[] agencies_array;
+        }
         if (head_agencies_array != NULL)
+        {
             delete[] head_agencies_array;
+        }
     }
 
     StatusType AddAgency()
@@ -74,24 +83,22 @@ public:
         AvlTree<VehicleByType>* agency_type_tree = agency->getTypeTree();
         AvlTree<VehicleBySales>* agency_sales_tree = agency->getSalesTree();
         VehicleByType demmy_vehicle = VehicleByType(typeID);
+        VehicleBySales demmy_sales_vehicle = VehicleBySales(typeID);
         VehicleByType* typeID_vehicle = agency_type_tree->getNodeData(demmy_vehicle); // log m
         if (typeID_vehicle != NULL) //there is such a typeID in the tree --> update the sales
         {
-            VehicleByType new_type_vehicle = *typeID_vehicle;
-            VehicleBySales new_sales_vehicle = VehicleBySales((*typeID_vehicle).getTypeID(), (*typeID_vehicle).getNumOfSales());
-            agency_type_tree->removeElement(*typeID_vehicle);
-            agency_sales_tree->removeElement(new_sales_vehicle);
-            new_type_vehicle.addSales(k);
-            new_sales_vehicle.addSales(k);
-            agency_type_tree->insertElement(new_type_vehicle);
-            agency_sales_tree->insertElement(new_sales_vehicle);
+            demmy_sales_vehicle.addSales(typeID_vehicle->getNumOfSales());
+            agency_sales_tree->removeElement(demmy_sales_vehicle);
+            typeID_vehicle->addSales(k);
+            demmy_sales_vehicle.addSales(k);
+            agency_sales_tree->insertElement(demmy_sales_vehicle); 
         }
         else //no typeID in the tree --> need to create new typeID
         {
-            VehicleByType new_vehicle_by_type = VehicleByType(typeID, k);
-            agency_type_tree->insertElement(new_vehicle_by_type); // log m
-            VehicleBySales new_vehicle_by_sales = VehicleBySales(typeID);
-            agency_sales_tree->insertElement(new_vehicle_by_sales); // log m
+            demmy_vehicle.addSales(k);
+            demmy_sales_vehicle.addSales(k);
+            agency_sales_tree->insertElement(demmy_sales_vehicle);
+            agency_type_tree->insertElement(demmy_vehicle); // log m
         }
         return SUCCESS;
     }
@@ -100,26 +107,30 @@ public:
     {
         if(agencyID1 >= agencies_counter || agencyID2 >= agencies_counter)
             return FAILURE;
+        if(agencyID1 == agencyID2)
+            return SUCCESS;
         Agency* temp1 = head_agencies_array[agencyID1];
         Agency* temp2 = head_agencies_array[agencyID2];
+        while (temp1->getNext() != NULL)
+            temp1 = temp1->getNext();
+        while (temp2->getNext() != NULL)
+            temp2 = temp2->getNext();
+        if(temp1 == temp2)
+            return SUCCESS;
         AvlTree<VehicleBySales>* old_sales_tree1 = temp1->getSalesTree(); 
         AvlTree<VehicleByType>* old_types_tree1 = temp1->getTypeTree(); 
         AvlTree<VehicleBySales>* old_sales_tree2 = temp2->getSalesTree(); 
-        AvlTree<VehicleByType>* old_types_tree2 = temp2->getTypeTree(); 
+        AvlTree<VehicleByType>* old_types_tree2 = temp2->getTypeTree();
         AvlTree<VehicleBySales>* merged_sales_tree =  old_sales_tree1->merge(old_sales_tree2); // O(m1+m2)
         AvlTree<VehicleByType>* merged_types_tree =  old_types_tree1->merge(old_types_tree2); // O(m1+m2)
-        delete old_sales_tree1; 
-        delete old_types_tree1; 
-        delete old_sales_tree2; 
-        delete old_types_tree2; 
         if(temp1->getNumOfAgencies() <= temp2->getNumOfAgencies()) // temp2 bigger so unite the trees to it
         {
             temp1->setNext(temp2);
             head_agencies_array[agencyID1] = head_agencies_array[agencyID2]; // update the new head of the group
             temp2->setNumOfAgencies(temp1->getNumOfAgencies() + temp2->getNumOfAgencies());
             temp1->setNumOfAgencies(0);
-            temp1->setSalesTree(NULL);
-            temp1->setTypeTree(NULL);
+            delete old_sales_tree2; 
+            delete old_types_tree2; 
             temp2->setSalesTree(merged_sales_tree);
             temp2->setTypeTree(merged_types_tree);
         }
@@ -129,12 +140,11 @@ public:
             head_agencies_array[agencyID2] = head_agencies_array[agencyID1]; // update the new head of the group
             temp1->setNumOfAgencies(temp1->getNumOfAgencies() + temp2->getNumOfAgencies());
             temp2->setNumOfAgencies(0);
-            temp2->setSalesTree(NULL);
-            temp2->setTypeTree(NULL);
+            delete old_sales_tree1; 
+            delete old_types_tree1; 
             temp1->setSalesTree(merged_sales_tree);
             temp1->setTypeTree(merged_types_tree);
         }
-        head_agencies_counter--;
         return SUCCESS;
     }
 
@@ -161,7 +171,7 @@ public:
         if(agencyID >= agencies_counter)
             return FAILURE;
         Agency* group_head = find(agencyID); //log*(n)
-        AvlTree<VehicleBySales>* model_node = group_head->getSalesTree()->getNumber(i); // log(m)
+        AvlTree<VehicleBySales>* model_node = group_head->getSalesTree()->getNumber(i+1); // log(m)
         if(model_node == NULL)
             return FAILURE; 
         *res = model_node->getData().getTypeID();

@@ -10,12 +10,11 @@
 class AgencyManager
 {
     int agencies_counter; //start from 0
-    int head_agencies_counter; //start from 0
     Agency** agencies_array;
     int agencies_array_length;
 public:
 
-    AgencyManager(): agencies_counter(0), head_agencies_counter(0), agencies_array(NULL), agencies_array_length(1)
+    AgencyManager(): agencies_counter(0), agencies_array(NULL), agencies_array_length(1)
     {
         agencies_array = new Agency*[1];
     }

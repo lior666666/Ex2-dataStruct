@@ -13,15 +13,11 @@ class AgencyManager
     int head_agencies_counter; //start from 0
     Agency** agencies_array;
     int agencies_array_length;
-    Agency** head_agencies_array;
-    int head_agencies_array_length;
 public:
 
-    AgencyManager(): agencies_counter(0), head_agencies_counter(0), agencies_array(NULL),
-                    agencies_array_length(1), head_agencies_array(NULL), head_agencies_array_length(1)
+    AgencyManager(): agencies_counter(0), head_agencies_counter(0), agencies_array(NULL), agencies_array_length(1)
     {
         agencies_array = new Agency*[1];
-        head_agencies_array = new Agency*[1];
     }
 
     ~AgencyManager()
@@ -35,19 +31,13 @@ public:
             }
             delete[] agencies_array;
         }
-        if (head_agencies_array != NULL)
-        {
-            delete[] head_agencies_array;
-        }
     }
 
     StatusType AddAgency()
     {
         Agency* new_agency = new Agency(agencies_counter, new AvlTree<VehicleByType>(), new AvlTree<VehicleBySales>());
         agencies_array[agencies_counter] = new_agency;
-        head_agencies_array[head_agencies_counter] = new_agency;
         agencies_counter++;
-        head_agencies_counter++;
         if (agencies_counter == agencies_array_length) // multiply the dynamic agencies array
         {
             Agency** new_agencies_array = new Agency*[2*agencies_array_length];
@@ -58,17 +48,6 @@ public:
             delete[] agencies_array;
             agencies_array = new_agencies_array;
             agencies_array_length = 2*agencies_array_length;
-        }
-        if (head_agencies_counter == head_agencies_array_length) // multiply the dynamic head agencies array
-        {
-            Agency** new_head_agencies_array = new Agency*[2*head_agencies_array_length];
-            for (int i = 0; i < head_agencies_array_length; i++)
-            {
-                new_head_agencies_array[i] = head_agencies_array[i];
-            }
-            delete[] head_agencies_array;
-            head_agencies_array = new_head_agencies_array;
-            head_agencies_array_length = 2*head_agencies_array_length;
         }
         return SUCCESS;
     }
@@ -109,12 +88,8 @@ public:
             return FAILURE;
         if(agencyID1 == agencyID2)
             return SUCCESS;
-        Agency* temp1 = head_agencies_array[agencyID1];
-        Agency* temp2 = head_agencies_array[agencyID2];
-        while (temp1->getNext() != NULL)
-            temp1 = temp1->getNext();
-        while (temp2->getNext() != NULL)
-            temp2 = temp2->getNext();
+        Agency* temp1 = this->find(agencyID1);
+        Agency* temp2 = this->find(agencyID2);
         if(temp1 == temp2)
             return SUCCESS;
         AvlTree<VehicleBySales>* old_sales_tree1 = temp1->getSalesTree(); 
@@ -126,7 +101,6 @@ public:
         if(temp1->getNumOfAgencies() <= temp2->getNumOfAgencies()) // temp2 bigger so unite the trees to it
         {
             temp1->setNext(temp2);
-            head_agencies_array[agencyID1] = head_agencies_array[agencyID2]; // update the new head of the group
             temp2->setNumOfAgencies(temp1->getNumOfAgencies() + temp2->getNumOfAgencies());
             temp1->setNumOfAgencies(0);
             delete old_sales_tree2; 
@@ -137,7 +111,6 @@ public:
         else
         {
             temp2->setNext(temp1);
-            head_agencies_array[agencyID2] = head_agencies_array[agencyID1]; // update the new head of the group
             temp1->setNumOfAgencies(temp1->getNumOfAgencies() + temp2->getNumOfAgencies());
             temp2->setNumOfAgencies(0);
             delete old_sales_tree1; 
